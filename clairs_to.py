@@ -37,6 +37,7 @@ DEEP_LEARNING_FOLDER = "clairs"
 deep_learning_folder = [
     "predict",
     "call_variants",
+    "train"
 ]
 
 REPO_NAME = "clairs_to"
@@ -56,9 +57,16 @@ data_preprocess_folder = [
     "compare_vcf",
     "select_hetero_snp_for_phasing",
     "cna_germline_tagging",
-    "gen_contaminated_bam"
+    "gen_contaminated_bam",
+    "split_bam",
+    "mix_chunk_bam",
+    "extract_candidates",
+    "get_candidates",
+    "create_tensor_pileup",
+    "create_bin",
+    "prior_probability_distribution_snv",
+    "prior_probability_distribution_indel"
 ]
-
 
 def directory_for(submodule_name):
     if submodule_name in deep_learning_folder:
