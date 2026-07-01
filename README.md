@@ -75,6 +75,7 @@ If you need agentic AI skill (Claude Code, Cursor, Codex…) for the ClairS-TO, 
 ------
 
 ## Latest Updates
+*v0.5.0 (Jul 1, 2026)* : Released [documentation](https://github.com/HKU-BAL/ClairS-series-model-training/tree/main/clairs-to) for ClairS-TO SS (synthetic sample) and SSRS (synthetic sample and real sample) training workflow. These workflows enable users to train ClairS-TO models using either synthetic samples alone or synthetic samples together with in-house real tumor samples.
 
 *v0.4.4 (May 5, 2026)* : 1. Further optimized the non-somatic tagging module with stream processing to prevent OOM errors when users provide an ultra-large PoN ([#54](https://github.com/HKU-BAL/ClairS-TO/issues/54#issuecomment-4345617140)). 2. Added a chunk-processing option to the haplotype filtering module (enabled via `--haplotype_filtering_chunk_mode True`), which is recommended for efficiently handling over a million candidates ([#54](https://github.com/HKU-BAL/ClairS-TO/issues/54#issuecomment-4345617140)). 3. Fixed a bug where the haplotype filtering process could not be properly disabled even when the `--disable_intermediate_phasing` flag was specified ([#57](https://github.com/HKU-BAL/ClairS-TO/issues/57)). 4. Optimized the pipeline to ensure that temporary directories and output files are distinctly named and isolated when a user provides a specific sample name ([#43](https://github.com/HKU-BAL/ClairS-TO/issues/43#issuecomment-3673489529)).
 
@@ -142,6 +143,8 @@ ClairS-TO trained both Affirmative and Negational models using GIAB samples, and
 |             PacBio HiFi              |        hifi_revio         | Revio with SMRTbell prep kit 3.0 |     -      | Nov. 10, 2023 |           `hifi_revio`            | GRCh38_no_alt |  Minimap2  |
 
 **Caveats <sup>1</sup>**: Starting from v0.3.0 version, ClairS-TO will provide two model types. `ssrs` is a model trained initially with synthetic samples and then real samples augmented (e.g., `ont_r10_dorado_sup_5khz_ssrs`, `ilmn_ssrs`, `hifi_revio_ssrs`), `ss` is a model trained from synthetic samples (e.g., `ont_r10_dorado_sup_5khz_ss`, `ilmn_ss`, `hifi_revio_ss`). The `ssrs` model provides better performance and fits most usage scenarios. `ss` model can be used when missing a cancer-type in model training is a concern. In v0.3.0, four real cancer cell-line datasets (HCC1937, HCC1954, H1437, and H2009) covering two cancer types (breast cancer, lung cancer) published by [Park et al.](https://www.biorxiv.org/content/10.1101/2024.08.16.608331v1) were used for `ssrs` model training.
+
+We also released [documentation](https://github.com/HKU-BAL/ClairS-series-model-training/tree/main/clairs-to) for ClairS-TO SS (synthetic sample) and SSRS (synthetic sample and real sample) training workflow.
 
 ------
 
