@@ -249,9 +249,9 @@ echo ${CONDA_PREFIX}
 mkdir -p ${CONDA_PREFIX}/bin/clairs-to_models
 mkdir -p ${CONDA_PREFIX}/bin/clairs-to_databases
 mkdir -p ${CONDA_PREFIX}/bin/clairs-to_cna_data
-wget http://www.bio8.cs.hku.hk/clairs-to/models/clairs-to_models.tar.gz
-wget http://www.bio8.cs.hku.hk/clairs-to/databases/clairs-to_databases.tar.gz
-wget http://www.bio8.cs.hku.hk/clairs-to/cna_data/reference_files.tar.gz
+wget https://www.bio8.cs.hku.hk/clairs-to/models/clairs-to_models.tar.gz
+wget https://www.bio8.cs.hku.hk/clairs-to/databases/clairs-to_databases.tar.gz
+wget https://www.bio8.cs.hku.hk/clairs-to/cna_data/reference_files.tar.gz
 tar -zxvf clairs-to_models.tar.gz -C ${CONDA_PREFIX}/bin/clairs-to_models/
 tar -zxvf clairs-to_databases.tar.gz -C ${CONDA_PREFIX}/bin/clairs-to_databases/
 tar -zxvf reference_files.tar.gz -C ${CONDA_PREFIX}/bin/clairs-to_cna_data/
@@ -446,10 +446,10 @@ In addition, we recommend using `--panel_of_normals_require_allele_matching` opt
 
 | Default PoNs |                                                     URL                                                      |                         Source                         |                                                    Source URL                                                    |        Last visited         | Total #Variants |        Filters         | #Variants used for tagging | Remaining Columns in the input   |
 |:------------:|:------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|:---------------------------:|:---------------:|:----------------------:|:--------------------------:|:--------------------------------:|
-|    PoN 1     |              http://www.bio8.cs.hku.hk/clairs-to/databases/gnomad.r2.1.af-ge-0.001.sites.vcf.gz              |                      GATK gnomAD                       |            https://storage.googleapis.com/gatk-best-practices/somatic-hg38/af-only-gnomad.hg38.vcf.gz            |  July 10, 2023 PM10∶34∶07   |   268,225,276   | Sites with AF ≥ 0.001  |         35,551,905         |     #CHROM  POS ID  REF ALT      |
-|    PoN 2     |              http://www.bio8.cs.hku.hk/clairs-to/databases/dbsnp.b138.non-somatic.sites.vcf.gz               |                       GATK dbSNP                       | https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dbsnp138.vcf |  July 10, 2023 PM10∶42∶22   |   60,691,395    |   Non-Somatic sites    |         60,683,019         |     #CHROM  POS ID  REF ALT      |
-|    PoN 3     |                     http://www.bio8.cs.hku.hk/clairs-to/databases/1000g-pon.sites.vcf.gz                     |                     GATK 1000G PoN                     |              https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz               |  July 10, 2023 PM10∶31∶32   |    2,609,566    |       All sites        |         2,609,566          |     #CHROM  POS ID  REF ALT      |
-|    PoN 4     | http://www.bio8.cs.hku.hk/clairs-to/databases/CoLoRSdb.GRCh38.v1.1.0.deepvariant.glnexus.af-ge-0.001.vcf.gz  | Consortium of Long Read Sequencing Database (CoLoRSdb) |           https://zenodo.org/records/13145123/files/CoLoRSdb.GRCh38.v1.1.0.deepvariant.glnexus.vcf.gz            | August 21, 2024 PM10∶36∶10  |   49,550,902    | Sites with AF ≥ 0.001  |         41,175,834         |     #CHROM  POS ID  REF ALT      |
+|    PoN 1     |              https://www.bio8.cs.hku.hk/clairs-to/databases/gnomad.r2.1.af-ge-0.001.sites.vcf.gz              |                      GATK gnomAD                       |            https://storage.googleapis.com/gatk-best-practices/somatic-hg38/af-only-gnomad.hg38.vcf.gz            |  July 10, 2023 PM10∶34∶07   |   268,225,276   | Sites with AF ≥ 0.001  |         35,551,905         |     #CHROM  POS ID  REF ALT      |
+|    PoN 2     |              https://www.bio8.cs.hku.hk/clairs-to/databases/dbsnp.b138.non-somatic.sites.vcf.gz               |                       GATK dbSNP                       | https://storage.googleapis.com/genomics-public-data/resources/broad/hg38/v0/Homo_sapiens_assembly38.dbsnp138.vcf |  July 10, 2023 PM10∶42∶22   |   60,691,395    |   Non-Somatic sites    |         60,683,019         |     #CHROM  POS ID  REF ALT      |
+|    PoN 3     |                     https://www.bio8.cs.hku.hk/clairs-to/databases/1000g-pon.sites.vcf.gz                     |                     GATK 1000G PoN                     |              https://storage.googleapis.com/gatk-best-practices/somatic-hg38/1000g_pon.hg38.vcf.gz               |  July 10, 2023 PM10∶31∶32   |    2,609,566    |       All sites        |         2,609,566          |     #CHROM  POS ID  REF ALT      |
+|    PoN 4     | https://www.bio8.cs.hku.hk/clairs-to/databases/CoLoRSdb.GRCh38.v1.1.0.deepvariant.glnexus.af-ge-0.001.vcf.gz  | Consortium of Long Read Sequencing Database (CoLoRSdb) |           https://zenodo.org/records/13145123/files/CoLoRSdb.GRCh38.v1.1.0.deepvariant.glnexus.vcf.gz            | August 21, 2024 PM10∶36∶10  |   49,550,902    | Sites with AF ≥ 0.001  |         41,175,834         |     #CHROM  POS ID  REF ALT      |
 
 ------
 
