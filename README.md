@@ -75,6 +75,8 @@ If you need agentic AI skill (Claude Code, Cursor, Codex…) for the ClairS-TO, 
 ------
 
 ## Latest Updates
+*v0.5.1 (Sep 9, 2026)* : Added ONT Dorado HAC 5kHz v6 model (`-p ont_r10_dorado_hac_5khz_v6`).
+
 *v0.5.0 (Jul 1, 2026)* : Released [documentation](https://github.com/HKU-BAL/ClairS-series-model-training/tree/main/clairs-to) for ClairS-TO SS (synthetic sample) and SSRS (synthetic sample and real sample) training workflow. These workflows enable users to train ClairS-TO models using either synthetic samples alone or synthetic samples together with in-house real tumor samples.
 
 *v0.4.4 (May 5, 2026)* : 1. Further optimized the non-somatic tagging module with stream processing to prevent OOM errors when users provide an ultra-large PoN ([#54](https://github.com/HKU-BAL/ClairS-TO/issues/54#issuecomment-4345617140)). 2. Added a chunk-processing option to the haplotype filtering module (enabled via `--haplotype_filtering_chunk_mode True`), which is recommended for efficiently handling over a million candidates ([#54](https://github.com/HKU-BAL/ClairS-TO/issues/54#issuecomment-4345617140)). 3. Fixed a bug where the haplotype filtering process could not be properly disabled even when the `--disable_intermediate_phasing` flag was specified ([#57](https://github.com/HKU-BAL/ClairS-TO/issues/57)). 4. Optimized the pipeline to ensure that temporary directories and output files are distinctly named and isolated when a user provides a specific sample name ([#43](https://github.com/HKU-BAL/ClairS-TO/issues/43#issuecomment-3673489529)).
@@ -132,6 +134,7 @@ ClairS-TO trained both Affirmative and Negational models using GIAB samples, and
 |           ONT <sup>1</sup>           | r1041_e82_400bps_sup_v420 |          R10.4.1, 5khz           | Dorado SUP | Nov. 10, 2023 |   `ont_r10_dorado_sup_5khz_ss`    | GRCh38_no_alt |  Minimap2  |
 |                 ONT                  | r1041_e82_400bps_sup_v420 |          R10.4.1, 5khz           | Dorado SUP | Nov. 10, 2023 |     `ont_r10_dorado_sup_5khz`     | GRCh38_no_alt |  Minimap2  |
 |                 ONT                  | r1041_e82_400bps_sup_v410 |          R10.4.1, 4khz           | Dorado SUP | Nov. 10, 2023 |     `ont_r10_dorado_sup_4khz`     | GRCh38_no_alt |  Minimap2  |
+|                 ONT                  | r1041_e82_400bps_hac_v600 |          R10.4.1, 5khz           | Dorado HAC | Sep. 9, 2026  |    `ont_r10_dorado_hac_5khz_v6`    | GRCh38_no_alt |  Minimap2  |
 |                 ONT                  | r1041_e82_400bps_hac_v410 |          R10.4.1, 4khz           | Dorado HAC | Jan. 19, 2024 |     `ont_r10_dorado_hac_4khz`     | GRCh38_no_alt |  Minimap2  |
 |                 ONT                  | r1041_e82_400bps_sup_g615 |          R10.4.1, 4khz           | Guppy6 SUP | Nov. 10, 2023 |     `ont_r10_guppy_sup_4khz`      | GRCh38_no_alt |  Minimap2  |
 |                 ONT                  | r1041_e82_400bps_hac_g657 |          R10.4.1, 5khz           | Guppy6 HAC | Jan. 21, 2024 |     `ont_r10_guppy_hac_5khz`      | GRCh38_no_alt |  Minimap2  |
@@ -165,7 +168,7 @@ docker run -it \
   --tumor_bam_fn ${INPUT_DIR}/tumor.bam \      ## use your tumor bam file name here
   --ref_fn ${INPUT_DIR}/ref.fa \               ## use your reference file name here
   --threads ${THREADS} \                       ## maximum threads to be used
-  --platform ${PLATFORM} \                     ## options: {ont_r10_dorado_sup_4khz, ont_r10_dorado_hac_4khz, ont_r10_dorado_sup_5khz, ont_r10_dorado_sup_5khz_ss, ont_r10_dorado_sup_5khz_ssrs, ont_r10_guppy_sup_4khz, ont_r10_guppy_hac_5khz, ilmn, ilmn_ss, ilmn_ssrs, hifi_revio, hifi_revio_ss, hifi_revio_ssrs}
+  --platform ${PLATFORM} \                     ## options: {ont_r10_dorado_sup_4khz, ont_r10_dorado_hac_4khz, ont_r10_dorado_sup_5khz, ont_r10_dorado_hac_5khz_v6, ont_r10_dorado_sup_5khz_ss, ont_r10_dorado_sup_5khz_ssrs, ont_r10_guppy_sup_4khz, ont_r10_guppy_hac_5khz, ilmn, ilmn_ss, ilmn_ssrs, hifi_revio, hifi_revio_ss, hifi_revio_ssrs}
   --output_dir ${OUTPUT_DIR}                   ## output path prefix 
 ```
 
@@ -195,7 +198,7 @@ singularity exec \
   --tumor_bam_fn ${INPUT_DIR}/tumor.bam \      ## use your tumor bam file name here
   --ref_fn ${INPUT_DIR}/ref.fa \               ## use your reference file name here
   --threads ${THREADS} \                       ## maximum threads to be used
-  --platform ${PLATFORM} \                     ## options: {ont_r10_dorado_sup_4khz, ont_r10_dorado_hac_4khz, ont_r10_dorado_sup_5khz, ont_r10_dorado_sup_5khz_ss, ont_r10_dorado_sup_5khz_ssrs, ont_r10_guppy_sup_4khz, ont_r10_guppy_hac_5khz, ilmn, ilmn_ss, ilmn_ssrs, hifi_revio, hifi_revio_ss, hifi_revio_ssrs}
+  --platform ${PLATFORM} \                     ## options: {ont_r10_dorado_sup_4khz, ont_r10_dorado_hac_4khz, ont_r10_dorado_sup_5khz, ont_r10_dorado_hac_5khz_v6, ont_r10_dorado_sup_5khz_ss, ont_r10_dorado_sup_5khz_ssrs, ont_r10_guppy_sup_4khz, ont_r10_guppy_hac_5khz, ilmn, ilmn_ss, ilmn_ssrs, hifi_revio, hifi_revio_ss, hifi_revio_ssrs}
   --output_dir ${OUTPUT_DIR} \                 ## output path prefix
   --conda_prefix /opt/micromamba/envs/clairs-to
 ```
@@ -298,7 +301,7 @@ docker run -it hkubal/clairs-to:latest /opt/bin/run_clairs_to --help
   --tumor_bam_fn ${INPUT_DIR}/tumor.bam \    ## use your tumor bam file name here
   --ref_fn ${INPUT_DIR}/ref.fa \             ## use your reference file name here
   --threads ${THREADS} \                     ## maximum threads to be used
-  --platform ${PLATFORM} \                   ## options: {ont_r10_dorado_sup_4khz, ont_r10_dorado_hac_4khz, ont_r10_dorado_sup_5khz, ont_r10_dorado_sup_5khz_ss, ont_r10_dorado_sup_5khz_ssrs, ont_r10_guppy_sup_4khz, ont_r10_guppy_hac_5khz, ilmn, ilmn_ss, ilmn_ssrs, hifi_revio, hifi_revio_ss, hifi_revio_ssrs}
+  --platform ${PLATFORM} \                   ## options: {ont_r10_dorado_sup_4khz, ont_r10_dorado_hac_4khz, ont_r10_dorado_sup_5khz, ont_r10_dorado_hac_5khz_v6, ont_r10_dorado_sup_5khz_ss, ont_r10_dorado_sup_5khz_ssrs, ont_r10_guppy_sup_4khz, ont_r10_guppy_hac_5khz, ilmn, ilmn_ss, ilmn_ssrs, hifi_revio, hifi_revio_ss, hifi_revio_ssrs}
   --output_dir ${OUTPUT_DIR}                 ## output path prefix
  
 ## Final SNV output VCF file: output/snv.vcf.gz
@@ -314,7 +317,7 @@ docker run -it hkubal/clairs-to:latest /opt/bin/run_clairs_to --help
   -R, --ref_fn FASTA                Reference file input. The input file must be samtools indexed.
   -o, --output_dir OUTPUT_DIR       VCF output directory.
   -t, --threads THREADS             Max threads to be used.
-  -p, --platform PLATFORM           Select the sequencing platform of the input. Possible options {ont_r10_dorado_sup_4khz, ont_r10_dorado_hac_4khz, ont_r10_dorado_sup_5khz, ont_r10_dorado_sup_5khz_ss, ont_r10_dorado_sup_5khz_ssrs, ont_r10_guppy_sup_4khz, ont_r10_guppy_hac_5khz, ilmn, ilmn_ss, ilmn_ssrs, hifi_revio, hifi_revio_ss, hifi_revio_ssrs}.
+  -p, --platform PLATFORM           Select the sequencing platform of the input. Possible options {ont_r10_dorado_sup_4khz, ont_r10_dorado_hac_4khz, ont_r10_dorado_sup_5khz, ont_r10_dorado_hac_5khz_v6, ont_r10_dorado_sup_5khz_ss, ont_r10_dorado_sup_5khz_ssrs, ont_r10_guppy_sup_4khz, ont_r10_guppy_hac_5khz, ilmn, ilmn_ss, ilmn_ssrs, hifi_revio, hifi_revio_ss, hifi_revio_ssrs}.
 ```
 
 **Commonly used parameters:**
