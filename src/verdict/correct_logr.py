@@ -20,7 +20,9 @@ def create_bspline_basis(x, df, degree=3):
     knots = np.linspace(np.min(x), np.max(x), n_knots)
     knots = np.concatenate(([knots[0]] * degree, knots, [knots[-1]] * degree))
     spline = BSpline(knots, np.eye(len(knots) - degree - 1), degree)
-    return np.row_stack([spline(xi) for xi in x])
+    # BSpline evaluates the whole vector at once, giving bitwise the same matrix as a
+    # per-element loop but far faster, which matters at the ~3M loci of a WGS resource set.
+    return spline(x)
 
 
 def read_covariate_file(file_name, description):
