@@ -75,6 +75,11 @@ the loci files are already `chr`-prefixed, and the allele files inside the zip a
 although they are CHM13 files, so rename them (e.g. to `G1000_alleles_CHM13_chr*.txt`). No replication
 timing file is distributed for CHM13; Verdict then runs with GC-only correction.
 
+Replication timing can be approximated for CHM13 by lifting the hg38 file over, but on a whole-genome
+PacBio HiFi sample it changed almost nothing: identical tumour purity, ploidy 2.8738 against 2.8732,
+92% of copy number segments identical, and a different tag on 106 of 4,385,912 variants (0.002%).
+GC-only correction is therefore the recommended configuration for CHM13.
+
 Everything else in a CHM13 run also has to match the assembly. The default non-somatic tagging databases
 (gnomAD, dbSNP, 1000G PoN, CoLoRSdb) are GRCh38 coordinates, so pass `--disable_nonsomatic_tagging` or
 CHM13-based files via `--panel_of_normals`. Do not pass the GRCh38 indel BED. Under Docker/Apptainer add
