@@ -82,9 +82,9 @@ RUN cd /opt/bin/src/realign && \
     g++ -std=c++14 -O1 -shared -fPIC -o realigner ssw_cpp.cpp ssw.c realigner.cpp && \
     g++ -std=c++11 -shared -fPIC -o debruijn_graph -O3 debruijn_graph.cpp && \
     cd /opt/bin/src/verdict/allele_counter && chmod +x setup.sh && /bin/bash setup.sh /opt/bin/src/verdict/allele_counter && \
-    wget http://www.bio8.cs.hku.hk/clairs-to/models/clairs-to_models.tar.gz	-P /opt/models && \
-    wget http://www.bio8.cs.hku.hk/clairs-to/databases/clairs-to_databases.tar.gz -P /opt/databases && \
-    wget http://www.bio8.cs.hku.hk/clairs-to/cna_data/reference_files.tar.gz -P /opt/cna_data && \
+    wget https://www.bio8.cs.hku.hk/clairs-to/models/clairs-to_models.tar.gz	-P /opt/models && \
+    wget https://www.bio8.cs.hku.hk/clairs-to/databases/clairs-to_databases.tar.gz -P /opt/databases && \
+    wget https://www.bio8.cs.hku.hk/clairs-to/cna_data/reference_files.tar.gz -P /opt/cna_data && \
     mkdir -p /opt/micromamba/envs/clairs-to/bin/clairs-to_models && \
     mkdir -p /opt/micromamba/envs/clairs-to/bin/clairs-to_databases && \
     mkdir -p /opt/micromamba/envs/clairs-to/bin/clairs-to_cna_data && \
@@ -94,7 +94,10 @@ RUN cd /opt/bin/src/realign && \
     rm /opt/models/clairs-to_models.tar.gz && \
     rm /opt/databases/clairs-to_databases.tar.gz && \
     rm -rf /opt/cna_data/reference_files.tar.gz && \
-    echo 'will cite' | parallel --citation || true \
+    test -d /opt/micromamba/envs/clairs-to/bin/clairs-to_models && \
+    test -d /opt/micromamba/envs/clairs-to/bin/clairs-to_databases/ && \
+    test -d /opt/micromamba/envs/clairs-to/bin/clairs-to_cna_data/reference_files/loci_files && \
+    { echo 'will cite' | parallel --citation || true; } && \
     echo "micromamba activate clairs-to" > ~/.bashrc
 
 # Provenance for the images built by .github/workflows/container.yml. Kept last so that
