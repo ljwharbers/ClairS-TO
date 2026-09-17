@@ -93,3 +93,13 @@ RUN cd /opt/bin/src/realign && \
     rm -rf /opt/cna_data/reference_files.tar.gz && \
     echo 'will cite' | parallel --citation || true \
     echo "micromamba activate clairs-to" > ~/.bashrc
+
+# Provenance for the images built by .github/workflows/container.yml. Kept last so that
+# changing the source commit does not invalidate any of the layers above.
+ARG CLAIRSTO_SRC_COMMIT=a15ec04
+LABEL org.opencontainers.image.title="ClairS-TO (verdict-chm13)" \
+      org.opencontainers.image.source="https://github.com/ljwharbers/ClairS-TO" \
+      org.opencontainers.image.revision="${CLAIRSTO_SRC_COMMIT}" \
+      org.opencontainers.image.version="0.5.1-verdict-chm13-${CLAIRSTO_SRC_COMMIT}" \
+      org.opencontainers.image.description="ClairS-TO 0.5.1 with Verdict able to run against an assembly other than GRCh38, e.g. T2T-CHM13: the CNA resources are resolved from --cna_resource_dir instead of hardcoded hg38 names, the loci are checked against the reference so a mismatched resource set cannot be applied silently, and the replication timing file is optional. Also fixes the GC window selection, which read the wrong row of the correlation matrix. The image still ships the GRCh38 resource set; point --cna_resource_dir at a bind-mounted CHM13 set to use one." \
+      org.opencontainers.image.licenses="BSD-3-Clause"
