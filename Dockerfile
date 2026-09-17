@@ -62,15 +62,18 @@ RUN wget --quiet -O linux-64_micromamba-1.5.1-2.tar.bz2 https://micro.mamba.pm/a
     rm linux-64_micromamba-1.5.1-2.tar.bz2 && \
     rm -r info/ && \
     rm -r bin/ && \
-    micromamba create -n clairs-to -c pytorch -c conda-forge -c bioconda clair3 bcftools einops tqdm pytorch torchinfo -y && \
+    micromamba create -n clairs-to -c pytorch -c conda-forge -c bioconda clair3 bcftools einops tqdm pytorch torchinfo scipy scikit-learn -y && \
     rm -rf /opt/micromamba/pkgs/* && \
     rm -rf /root/.cache/pip
 
 ENV PATH /opt/micromamba/envs/clairs-to/bin:$PATH
 ENV CONDA_DEFAULT_ENV clairs-to
 
+# curl and the compression headers are what htslib needs when allele_counter/setup.sh builds it.
+# scipy and scikit-learn come from conda-forge above rather than pip: this base is old enough that
+# pip no longer finds manylinux wheels matching its glibc and falls back to building from source,
+# which fails. The README's conda instructions install them the same way.
 RUN apt install curl zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev -y && \
-    /opt/micromamba/envs/clairs-to/bin/python3 -m pip install scipy scikit-learn && \
     rm -rf /var/lib/apt/lists/*
 
 COPY . .
