@@ -1,0 +1,44 @@
+# ClairS-TO 0.5.1 with the Verdict changes on this branch, layered onto the published image.
+#
+# The repository's own Dockerfile builds everything from scratch, which needs the models, the
+# PoN databases and the CNA reference files from www.bio8.cs.hku.hk. That host is not reachable
+# from GitHub's runners (it times out on 443), so building it in CI is not possible. The
+# published image already contains all of it, and its tag matches this tree's version exactly,
+# so this Dockerfile starts there and replaces only the files this branch changes.
+#
+# Built by .github/workflows/container.yml and published as
+#   ghcr.io/ljwharbers/clairs-to:0.5.1-verdict-chm13-<source commit>          (OCI)
+#   oras://ghcr.io/ljwharbers/clairs-to-sif:0.5.1-verdict-chm13-<source commit>  (Apptainer SIF)
+FROM hkubal/clairs-to:v0.5.1
+
+ARG CLAIRSTO_SRC_COMMIT=a15ec04
+LABEL org.opencontainers.image.title="ClairS-TO (verdict-chm13)" \
+      org.opencontainers.image.source="https://github.com/ljwharbers/ClairS-TO" \
+      org.opencontainers.image.base.name="docker.io/hkubal/clairs-to:v0.5.1" \
+      org.opencontainers.image.revision="${CLAIRSTO_SRC_COMMIT}" \
+      org.opencontainers.image.version="0.5.1-verdict-chm13-${CLAIRSTO_SRC_COMMIT}" \
+      org.opencontainers.image.description="ClairS-TO 0.5.1 with Verdict able to run against an assembly other than GRCh38, e.g. T2T-CHM13: the CNA resources are resolved from --cna_resource_dir instead of hardcoded hg38 names, the loci are checked against the reference so a mismatched resource set cannot be applied silently, and the replication timing file is optional. Also fixes the GC window selection, which read the wrong row of the correlation matrix. The image still ships the GRCh38 resource set; point --cna_resource_dir at a bind-mounted CHM13 set to use another assembly." \
+      org.opencontainers.image.licenses="BSD-3-Clause"
+
+# Exactly the files that differ from upstream (git diff main --name-only), minus the build
+# plumbing. Everything else, including the compiled realigner and alleleCounter, stays as the
+# base image built it.
+COPY run_clairs_to               /opt/bin/run_clairs_to
+COPY shared/cna_resources.py     /opt/bin/shared/cna_resources.py
+COPY src/cna_germline_tagging.py /opt/bin/src/cna_germline_tagging.py
+COPY src/verdict/correct_logr.py /opt/bin/src/verdict/correct_logr.py
+COPY src/verdict/run_ascat.py    /opt/bin/src/verdict/run_ascat.py
+COPY docs/verdict.md             /opt/bin/docs/verdict.md
+COPY README.md                   /opt/bin/README.md
+
+# Fail the build rather than ship an image whose Verdict cannot start: the entry point must run,
+# the new module must import, and the GRCh38 resource set the base image ships must still resolve.
+RUN chmod +x /opt/bin/run_clairs_to && \
+    /opt/bin/run_clairs_to --version && \
+    /opt/micromamba/envs/clairs-to/bin/python3 -c "\
+import sys; sys.path.insert(0, '/opt/bin');\
+from shared.cna_resources import resolve_cna_resources, missing_resource_files, VERDICT_CONTIGS;\
+r = resolve_cna_resources('/opt/micromamba/envs/clairs-to/bin/clairs-to_cna_data/reference_files');\
+assert not r['errors'], r['errors'];\
+assert not missing_resource_files(r, VERDICT_CONTIGS);\
+print('GRCh38 CNA resources resolve:', r['loci_prefix'])"

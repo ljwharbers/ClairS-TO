@@ -22,8 +22,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # The image carries the models, PoN databases and GRCh38 CNA reference files, so it
-      # lands around 6 GB and the default runner does not have room for it.
+      # The base image carries the models, PoN databases and GRCh38 CNA reference files, so it
+      # is around 7 GB and the default runner does not have room for it.
       - name: Free disk space
         run: |
           set -euo pipefail
@@ -47,6 +47,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.verdict-chm13
           platforms: linux/amd64
           push: true
           tags: |
