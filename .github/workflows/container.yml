@@ -10,7 +10,7 @@ env:
   SIF_IMAGE: ghcr.io/ljwharbers/clairs-to-sif
   VERSION: 0.5.1-verdict-chm13
   # Commit of verdict-chm13 that this branch's source corresponds to.
-  CLAIRSTO_SRC_COMMIT: e2987bf
+  CLAIRSTO_SRC_COMMIT: c0687e8
 
 jobs:
   build-push:
