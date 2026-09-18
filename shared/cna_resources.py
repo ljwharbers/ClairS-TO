@@ -142,20 +142,44 @@ def alleles_file(resources, contig):
     return '{}{}.txt'.format(resources['alleles_prefix'], contig)
 
 
-def missing_resource_files(resources, contigs):
-    """Return the resource files that Verdict would need for `contigs` but that do not exist."""
-    if resources['errors']:
-        return []
+def _resource_candidates(resources, contigs):
+    """Every file Verdict needs for `contigs`, in one list."""
     candidates = [loci_file(resources, ctg) for ctg in contigs]
     candidates += [alleles_file(resources, ctg) for ctg in contigs]
     candidates.append(resources['gc_file'])
     if resources['rt_file'] is not None:
         candidates.append(resources['rt_file'])
-    return [fn for fn in candidates if not os.path.isfile(fn)]
+    return candidates
+
+
+def missing_resource_files(resources, contigs):
+    """Return the resource files that Verdict would need for `contigs` but that do not exist."""
+    if resources['errors']:
+        return []
+    return [fn for fn in _resource_candidates(resources, contigs) if not os.path.isfile(fn)]
+
+
+def unreadable_resource_files(resources, contigs):
+    """Return the resource files that exist but that this process cannot open for reading.
+
+    Existence is not enough. The reference files ship mode 0640, so a container started under a
+    different uid -- which is what `docker run -u $(id -u):$(id -g)` gives, and what nf-core's
+    docker profile does -- can stat them but not read them. Undetected that costs an hour: every
+    other check here passes, Verdict stays enabled, and the run fails much later inside
+    alleleCounter, which reports a file it cannot open as one that "does not appear to exist".
+    """
+    if resources['errors']:
+        return []
+    return [fn for fn in _resource_candidates(resources, contigs)
+            if os.path.isfile(fn) and not os.access(fn, os.R_OK)]
 
 
 def last_locus_position(loci_fn):
-    """Return the highest position in a loci file, or None if it cannot be read.
+    """Return the highest position in a loci file, or None if no position could be read.
+
+    None covers every reason alike -- unreadable, empty, or a malformed second column -- so it is
+    not evidence about the file's contents. Callers that need to tell "could not read it" from
+    "read it and found nothing wrong" check `unreadable_resource_files` first.
 
     Loci files are sorted by position, so reading the tail is enough.
     """

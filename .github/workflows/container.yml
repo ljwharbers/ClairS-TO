@@ -10,7 +10,7 @@ env:
   SIF_IMAGE: ghcr.io/ljwharbers/clairs-to-sif
   VERSION: 0.5.1-verdict-chm13
   # Commit of verdict-chm13 that this branch's source corresponds to.
-  CLAIRSTO_SRC_COMMIT: a15ec04
+  CLAIRSTO_SRC_COMMIT: e2987bf
 
 jobs:
   build-push:
@@ -50,9 +50,11 @@ jobs:
           file: Dockerfile.verdict-chm13
           platforms: linux/amd64
           push: true
+          # Only the commit-suffixed tag. A floating ${VERSION} tag is a trap for a pipeline that
+          # caches images by name: the cached SIF keeps serving the old build forever, and a run
+          # pinned to it is not reproducible.
           tags: |
             ${{ env.IMAGE }}:${{ env.VERSION }}-${{ env.CLAIRSTO_SRC_COMMIT }}
-            ${{ env.IMAGE }}:${{ env.VERSION }}
           build-args: |
             CLAIRSTO_SRC_COMMIT=${{ env.CLAIRSTO_SRC_COMMIT }}
           cache-from: type=gha
@@ -79,6 +81,28 @@ jobs:
           assert r['rt_file'] and r['rt_file'].endswith('RT_G1000_hg38.txt'), r['rt_file']
           assert not missing_resource_files(r, VERDICT_CONTIGS)
           print('GRCh38 CNA resources resolve:', r['loci_prefix'])
+          "
+
+      # Everything above runs as root, which can read the image's files whatever their mode. The
+      # consumers do not: nf-core's docker profile starts containers with
+      # `-u $(id -u):$(id -g)`, and the reference files ship 0640 owned by the tarball's builder,
+      # so Verdict used to fail deep inside alleleCounter with "does not appear to exist". Run the
+      # same checks as a foreign uid, and actually open a loci file.
+      - name: Smoke test as a non-root user
+        run: |
+          set -euo pipefail
+          TAG="${IMAGE}:${VERSION}-${CLAIRSTO_SRC_COMMIT}"
+          REF=/opt/micromamba/envs/clairs-to/bin/clairs-to_cna_data/reference_files
+          docker run --rm --user 1001:1001 "$TAG" head -c 1 "$REF/loci_files/G1000_loci_hg38_chr19.txt" >/dev/null
+          docker run --rm --user 1001:1001 "$TAG" /opt/micromamba/envs/clairs-to/bin/python3 -c "
+          import sys; sys.path.insert(0, '/opt/bin')
+          from shared.cna_resources import resolve_cna_resources, missing_resource_files, unreadable_resource_files, VERDICT_CONTIGS
+          r = resolve_cna_resources('$REF')
+          assert not r['errors'], r['errors']
+          assert not missing_resource_files(r, VERDICT_CONTIGS)
+          unreadable = unreadable_resource_files(r, VERDICT_CONTIGS)
+          assert not unreadable, 'unreadable as uid 1001: %s' % unreadable[:3]
+          print('GRCh38 CNA resources readable as uid 1001')
           "
 
   build-sif:
@@ -120,5 +144,4 @@ jobs:
           set -euo pipefail
           echo "${{ secrets.GITHUB_TOKEN }}" | apptainer remote login --username "${{ github.actor }}" --password-stdin oras://ghcr.io
           apptainer push clairs-to.sif "oras://${SIF_IMAGE}:${VERSION}-${CLAIRSTO_SRC_COMMIT}"
-          apptainer push clairs-to.sif "oras://${SIF_IMAGE}:${VERSION}"
           echo "pushed oras://${SIF_IMAGE}:${VERSION}-${CLAIRSTO_SRC_COMMIT}"

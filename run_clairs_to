@@ -52,7 +52,7 @@ from shared.interval_tree import bed_tree_from
 from shared.utils import file_path_from, folder_path_from, subprocess_popen, str2bool, str_none, \
     legal_range_from, log_error, log_warning
 from shared.cna_resources import VERDICT_CONTIGS, resolve_cna_resources, missing_resource_files, \
-    loci_beyond_reference
+    unreadable_resource_files, loci_beyond_reference
 
 major_contigs = {"chr" + str(a) for a in list(range(1, 23)) + ["X", "Y"]}.union(
     {str(a) for a in list(range(1, 23)) + ["X", "Y"]})
@@ -309,6 +309,21 @@ def check_cna_resources(args, verdict_contigs, contig_length_by_name):
             "or pass a complete path via --conda_prefix / --cna_resource_dir, "
             "or use --disable_verdict. Disabling Verdict for this run.".format(
                 args.cna_resource_dir, os.path.basename(missing[0]))))
+        return
+
+    # Before loci_beyond_reference, which is the check that silently degrades: it reads the loci
+    # files, and a file it cannot open looks to it exactly like one with nothing out of range.
+    unreadable = unreadable_resource_files(resources, verdict_contigs)
+    if unreadable:
+        args.disable_verdict = True
+        logging(log_warning(
+            "[WARNING] CNA Verdict resource file(s) under {} exist but cannot be read (e.g. {}). "
+            "The reference files ship mode 0640, so a container started under a different uid "
+            "(`docker run -u $(id -u):$(id -g)`, as nf-core's docker profile does) can stat them "
+            "but not open them. Make them world-readable in the image "
+            "(`chmod -R a+rX $CONDA_PREFIX/bin/clairs-to_cna_data`), pass a readable set via "
+            "--cna_resource_dir, or use --disable_verdict. Disabling Verdict for this run.".format(
+                args.cna_resource_dir, os.path.basename(unreadable[0]))))
         return
 
     out_of_range = loci_beyond_reference(resources, verdict_contigs, contig_length_by_name)

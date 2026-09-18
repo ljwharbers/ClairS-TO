@@ -31,14 +31,24 @@ COPY src/verdict/run_ascat.py    /opt/bin/src/verdict/run_ascat.py
 COPY docs/verdict.md             /opt/bin/docs/verdict.md
 COPY README.md                   /opt/bin/README.md
 
+# The base image untars reference_files.tar.gz without a chmod, so the CNA resources keep the
+# archive's own modes: 0640, owned by a uid that means nothing here. A container started under
+# another uid -- `docker run -u $(id -u):$(id -g)`, which is what nf-core's docker profile does --
+# can stat them but not open them, and Verdict then dies deep inside alleleCounter. Apptainer maps
+# image ownership onto the caller, which is why this never showed up in a local run. Directories
+# are already 0755; a+rX adds the read bit without making data files executable.
+RUN chmod -R a+rX /opt/micromamba/envs/clairs-to/bin/clairs-to_cna_data
+
 # Fail the build rather than ship an image whose Verdict cannot start: the entry point must run,
-# the new module must import, and the GRCh38 resource set the base image ships must still resolve.
+# the new module must import, and the GRCh38 resource set the base image ships must still resolve
+# -- and now also be readable, which is the failure the chmod above exists to prevent.
 RUN chmod +x /opt/bin/run_clairs_to && \
     /opt/bin/run_clairs_to --version && \
     /opt/micromamba/envs/clairs-to/bin/python3 -c "\
 import sys; sys.path.insert(0, '/opt/bin');\
-from shared.cna_resources import resolve_cna_resources, missing_resource_files, VERDICT_CONTIGS;\
+from shared.cna_resources import resolve_cna_resources, missing_resource_files, unreadable_resource_files, VERDICT_CONTIGS;\
 r = resolve_cna_resources('/opt/micromamba/envs/clairs-to/bin/clairs-to_cna_data/reference_files');\
 assert not r['errors'], r['errors'];\
 assert not missing_resource_files(r, VERDICT_CONTIGS);\
+assert not unreadable_resource_files(r, VERDICT_CONTIGS);\
 print('GRCh38 CNA resources resolve:', r['loci_prefix'])"
