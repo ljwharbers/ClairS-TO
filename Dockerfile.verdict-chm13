@@ -11,13 +11,13 @@
 #   oras://ghcr.io/ljwharbers/clairs-to-sif:0.5.1-verdict-chm13-<source commit>  (Apptainer SIF)
 FROM hkubal/clairs-to:v0.5.1
 
-ARG CLAIRSTO_SRC_COMMIT=a15ec04
+ARG CLAIRSTO_SRC_COMMIT=c0687e8
 LABEL org.opencontainers.image.title="ClairS-TO (verdict-chm13)" \
       org.opencontainers.image.source="https://github.com/ljwharbers/ClairS-TO" \
       org.opencontainers.image.base.name="docker.io/hkubal/clairs-to:v0.5.1" \
       org.opencontainers.image.revision="${CLAIRSTO_SRC_COMMIT}" \
       org.opencontainers.image.version="0.5.1-verdict-chm13-${CLAIRSTO_SRC_COMMIT}" \
-      org.opencontainers.image.description="ClairS-TO 0.5.1 with Verdict able to run against an assembly other than GRCh38, e.g. T2T-CHM13: the CNA resources are resolved from --cna_resource_dir instead of hardcoded hg38 names, the loci are checked against the reference so a mismatched resource set cannot be applied silently, and the replication timing file is optional. Also fixes the GC window selection, which read the wrong row of the correlation matrix. The image still ships the GRCh38 resource set; point --cna_resource_dir at a bind-mounted CHM13 set to use another assembly." \
+      org.opencontainers.image.description="ClairS-TO 0.5.1 with Verdict able to run against an assembly other than GRCh38, e.g. T2T-CHM13: the CNA resources are resolved from --cna_resource_dir instead of hardcoded hg38 names, the loci are checked against the reference so a mismatched resource set cannot be applied silently, and the replication timing file is optional. Also fixes the GC window selection, which read the wrong row of the correlation matrix, the segmentation noise estimate (R's mad() constant 1.4826 was missing, so almost no segment was called allelically balanced and purity/ploidy were off), the copy number table (segments were merged across chromosome boundaries, leaving 5-15% of variants untagged) and the purity/ploidy grid labels. The image still ships the GRCh38 resource set; point --cna_resource_dir at a bind-mounted CHM13 set to use another assembly." \
       org.opencontainers.image.licenses="BSD-3-Clause"
 
 # Exactly the files that differ from upstream (git diff main --name-only), minus the build
@@ -26,6 +26,7 @@ LABEL org.opencontainers.image.title="ClairS-TO (verdict-chm13)" \
 COPY run_clairs_to               /opt/bin/run_clairs_to
 COPY shared/cna_resources.py     /opt/bin/shared/cna_resources.py
 COPY src/cna_germline_tagging.py /opt/bin/src/cna_germline_tagging.py
+COPY src/verdict/aspcf.py        /opt/bin/src/verdict/aspcf.py
 COPY src/verdict/correct_logr.py /opt/bin/src/verdict/correct_logr.py
 COPY src/verdict/run_ascat.py    /opt/bin/src/verdict/run_ascat.py
 COPY docs/verdict.md             /opt/bin/docs/verdict.md
