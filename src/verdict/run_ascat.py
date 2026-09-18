@@ -28,18 +28,28 @@ def make_segments(r, b):
     return np.array(pcf_segments, dtype=float)
 
 
+def seq(start, stop, step):
+    """R's seq(): both ends included, rounded to the grid so 0.1 + k*0.01 prints as such."""
+    return np.round(np.arange(start, stop + step / 2, step), 2)
+
+
 def create_distance_matrix(segments, gamma, min_ploidy=None, max_ploidy=None, min_purity=None, max_purity=None):
+    """Distance of every (ploidy, purity) grid point, plus the two grids.
+
+    The caller must label optima with the returned grids: R reads them back from the row and
+    column names of the matrix, so the reported purity is the one the distance was evaluated at.
+    """
     s = segments
 
     if min_ploidy is None or max_ploidy is None:
-        psi_pos = np.arange(1, 6.05, 0.05)
+        psi_pos = seq(1, 6, 0.05)
     else:
-        psi_pos = np.arange(min_ploidy - 0.5, max_ploidy + 0.5, 0.05)
+        psi_pos = seq(min_ploidy - 0.5, max_ploidy + 0.5, 0.05)
 
     if min_purity is None or max_purity is None:
-        rho_pos = np.arange(0.1, 1.06, 0.01)
+        rho_pos = seq(0.1, 1.05, 0.01)
     else:
-        rho_pos = np.arange(round(min_purity, 2), round(max_purity, 2), 0.01)
+        rho_pos = seq(round(min_purity, 2), round(max_purity, 2), 0.01)
 
     d = np.zeros((len(psi_pos), len(rho_pos)))
     dmin = 1E20
@@ -57,7 +67,7 @@ def create_distance_matrix(segments, gamma, min_ploidy=None, max_ploidy=None, mi
             d[i, j] = np.nansum(
                 np.abs(nMinor - np.maximum(np.round(nMinor), 0)) ** 2 * s[:, 2] * np.where(s[:, 1] == 0.5, 0.05, 1))
 
-    return d
+    return d, psi_pos, rho_pos
 
 
 def rle(x):
@@ -159,8 +169,11 @@ def run_ascat(tumor_logr_file, tumor_baf_file, germline_genotypes_file, tumor_lo
     r_ori = np.array([float(v) for v in tumor_logr_segmented_dict.values()])
 
     s = make_segments(r, b)
-    d = create_distance_matrix(s, gamma, min_ploidy=min_ploidy, max_ploidy=max_ploidy, min_purity=min_purity,
-                               max_purity=max_purity)
+    # psi_values/rho_values are the grid d was evaluated on. They used to be built separately,
+    # one step above it (1.05.. / 0.11..), so every reported purity was 0.01 and every ploidy 0.05
+    # higher than the point the distance and the filters were computed at.
+    d, psi_values, rho_values = create_distance_matrix(s, gamma, min_ploidy=min_ploidy, max_ploidy=max_ploidy,
+                                                       min_purity=min_purity, max_purity=max_purity)
 
     TheoretMaxdist = np.sum(0.25 * s[:, 2] * np.where(s[:, 1] == 0.5, 0.05, 1))
 
@@ -185,11 +198,6 @@ def run_ascat(tumor_logr_file, tumor_baf_file, germline_genotypes_file, tumor_lo
 
     localmin = []
     optima = []
-
-    psi_values = np.arange(1.05, 6.05, 0.05)
-
-    rho_values = np.arange(0.11, 1.06, 0.01)
-    rho_values = np.round(rho_values, 2)
 
     for i in range(3, d.shape[0] - 3):
         for j in range(3, d.shape[1] - 3):
@@ -460,34 +468,26 @@ def run_ascat(tumor_logr_file, tumor_baf_file, germline_genotypes_file, tumor_lo
         nonaberrant = nonaberrant
         nA = n1all
         nB = n2all
-        seg = seg
+        # The copy number table is built per chromosome from the per-probe states, as R ASCAT
+        # does. Reading it off the merged `seg` rows instead let a row run from the last segment
+        # of one chromosome into the first of the next whenever both had the same state; written
+        # under the start chromosome, such a row matched no variant anywhere in that span. The
+        # old code also started every row one probe late, so single-probe segments came out with
+        # start > end.
+        keys = list(tumor_baf_dict.keys())
+        positions = [key[1] for key in keys]
         seg_new = []
-        for idx, seg_line in enumerate(seg):
-            start_idx = int(seg_line[0]) if idx == 0 else int(seg_line[0]) + 1
-            end_idx = int(seg_line[1])
-            tumor_baf_dict_keys = list(tumor_baf_dict.keys())
-            start_key = tumor_baf_dict_keys[start_idx]
-            end_key = tumor_baf_dict_keys[end_idx]
-            start_chr = start_key[0]
-            end_chr = end_key[0]
-            start_pos = start_key[1]
-            end_pos = end_key[1]
-            seg_line_new = [start_chr, start_pos, end_pos, str(seg_line[2]), str(seg_line[3])]
-            seg_new.append(seg_line_new)
-        seg_raw = seg_raw
-        seg_raw_new = []
-        for idx, seg_raw_line in enumerate(seg_raw):
-            start_idx = int(seg_raw_line[0]) if idx == 0 else int(seg_raw_line[0]) + 1
-            end_idx = int(seg_raw_line[1])
-            tumor_baf_dict_keys = list(tumor_baf_dict.keys())
-            start_key = tumor_baf_dict_keys[start_idx]
-            end_key = tumor_baf_dict_keys[end_idx]
-            start_chr = start_key[0]
-            end_chr = end_key[0]
-            start_pos = start_key[1]
-            end_pos = end_key[1]
-            seg_raw_line_new = [start_chr, start_pos, end_pos, str(seg_raw_line[2]), str(seg_raw_line[3])]
-            seg_raw_new.append(seg_raw_line_new)
+        for chrom_probes in result:
+            first, last = chrom_probes[0], chrom_probes[-1]
+            chrom = keys[first][0]
+            major = nMajor[first:last + 1]
+            minor = nMinor[first:last + 1]
+            change = np.where((major[1:] != major[:-1]) | (minor[1:] != minor[:-1]))[0] + 1
+            run_starts = np.concatenate(([0], change))
+            run_ends = np.concatenate((change - 1, [len(major) - 1]))
+            for run_start, run_end in zip(run_starts, run_ends):
+                seg_new.append([chrom, positions[first + run_start], positions[first + run_end],
+                                str(int(major[run_start])), str(int(minor[run_start]))])
         distance_matrix = d
         ploidy = np.mean(n1all + n2all)
 
@@ -502,7 +502,6 @@ def run_ascat(tumor_logr_file, tumor_baf_file, germline_genotypes_file, tumor_lo
         seg = None
         seg_new = None
         seg_raw = None
-        seg_raw_new = None
         distance_matrix = None
         ploidy = None
 

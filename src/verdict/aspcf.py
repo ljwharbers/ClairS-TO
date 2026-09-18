@@ -10,6 +10,10 @@ from time import time
 seed = int(time())
 random.seed(seed)
 
+# Default `constant` of R's mad(): 1 / qnorm(3/4), which makes the MAD consistent with the
+# standard deviation of a normal distribution.
+MAD_SCALE = 1.4826
+
 
 def predictGermlineHomozygousStretches(chr, hom):
     homsam = hom
@@ -244,8 +248,12 @@ def getMad(x, k=25):
     # Calculate differences
     dif = x - run_median
 
-    # Calculate MAD (Median Absolute Deviation)
-    mad = np.median(np.abs(dif - np.median(dif)))
+    # R's mad() scales the median absolute deviation by 1.4826 so that it estimates the standard
+    # deviation of normal noise. fastAspcf compares the mean allelic imbalance of a segment with
+    # this estimate (sqrt(sd2^2 + mu^2) < 2*sd2) to decide that the segment is balanced and set its
+    # BAF to 0.5; without the constant the test fails for almost every diploid segment and the
+    # whole genome is fitted as allelically imbalanced.
+    mad = MAD_SCALE * np.median(np.abs(dif - np.median(dif)))
 
     return mad
 
@@ -335,8 +343,8 @@ def madWins(x, tau, k):
     # Calculate differences
     d = x - xhat
 
-    # Calculate MAD (Median Absolute Deviation)
-    mad = np.median(np.abs(d - np.median(d)))
+    # Calculate MAD (Median Absolute Deviation), scaled as R's mad() does
+    mad = MAD_SCALE * np.median(np.abs(d - np.median(d)))
 
     # Calculate threshold z
     z = tau * mad

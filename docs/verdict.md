@@ -89,3 +89,27 @@ CHM13-based files via `--panel_of_normals`. Do not pass the GRCh38 indel BED. Un
 run_clairs_to -T tumor.chm13.bam -R chm13v2.0.fa -o output -t 24 -p hifi_revio \
     --cna_resource_dir /path/to/verdict_CHM13 --disable_nonsomatic_tagging
 ```
+
+## Fixes to the ASCAT port
+
+Verdict's ASCAT is a Python rewrite of the R package, and three places where the rewrite departed from R
+have been corrected on this branch. All three change results on every assembly, GRCh38 included.
+
+* **Noise estimate in the segmentation.** R's `mad()` scales the median absolute deviation by 1.4826 so
+  that it estimates a standard deviation; the port did not. The scaled value decides whether a segment is
+  allelically balanced (BAF set to exactly 0.5) or keeps its measured imbalance. Without the constant
+  almost no segment passed that test: on three 30x whole genomes fewer than 0.5% of heterozygous sites
+  ended up at BAF 0.5 against 90% in R, so the whole genome read as allelically imbalanced and the fit
+  explained it as ploidy ~3 at a purity 0.1-0.2 below R's. With the constant restored ploidy lands
+  near R's. Purity still depends on `--penalty` (Verdict's 1000 was tuned against the unscaled noise;
+  R uses 70 by default), so expect purity to differ from R by up to ~0.1.
+* **Copy number table across chromosomes.** Adjacent segments with the same copy number state were merged
+  without regard to the chromosome, and the merged row was written under the start chromosome only. Every
+  variant between such a row's start and the end of that chromosome, and from the start of the next
+  chromosome to the row's end, matched no segment and was silently left untagged: 5-15% of PASS variants
+  on the same three genomes. Single-probe segments also came out with start > end. The table is now
+  built per chromosome from the per-site states, as R does.
+* **Purity/ploidy grid labels.** Optima were labelled with a grid one step above the one the distance
+  matrix was evaluated on, so every reported purity was 0.01 and every ploidy 0.05 too high, and the
+  filters on ploidy and fraction of zero-copy segments were applied at the wrong point. The grid now
+  also includes both ends, as R's `seq()` does.
